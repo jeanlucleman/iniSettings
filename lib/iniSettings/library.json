@@ -1,0 +1,16 @@
+{
+    "name": "iniSettings",
+    "keywords": "sd, card, file, system, ini",
+    "description": "Reading and saving of settings on a SD card with an ini file",
+    "authors":
+    {
+      "name": "Jean-Luc LEMAN"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jeanlucleman/iniSettings"
+    },
+    "frameworks": "arduino",
+    "platforms": "az-delivery-devkit-v4",
+    "version": "0.0.1"
+}
