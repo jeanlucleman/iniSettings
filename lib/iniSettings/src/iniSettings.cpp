@@ -91,6 +91,8 @@ bool IniSettings::_findKey(const char * section, const char * key, char * cp,Ini
                   {
                     found=true;
                     *ptrEqual++; // Now this pointer points on the start of value
+                    _leftTrim(ptrEqual);// removing left space if any
+                    _rightTrim(ptrEqual);// removing right space if any
                     while(*ptrEqual!='\0')
                       {
                         *cp=*ptrEqual; // The key value is shifted left to start on the cp pointer
@@ -98,8 +100,9 @@ bool IniSettings::_findKey(const char * section, const char * key, char * cp,Ini
                         *ptrEqual++;
                       }
                     *cp='\0'; // ending the value string 
-                    _rightTrim(cp); // removing right space if any
-                    _leftTrim(cp); // removing left space if any
+                    // _rightTrim(cp); 
+                    // _leftTrim(cp); 
+
                   }
               }
           }

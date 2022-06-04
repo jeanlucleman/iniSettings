@@ -1,5 +1,5 @@
 {
-    "name": "iniSettings",
+    "name": "IniSettings",
     "keywords": "sd, card, file, system, ini",
     "description": "Reading and saving of settings on a SD card with an ini file",
     "authors":
@@ -12,5 +12,5 @@
     },
     "frameworks": "arduino",
     "platforms": "az-delivery-devkit-v4",
-    "version": "0.0.1"
+    "version": "0.0.2"
 }

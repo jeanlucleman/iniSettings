@@ -69,13 +69,14 @@ void setup()
     char key[]="var";
     // mySettings.getValue(section, key, buffer);
     // Serial.printf("Valeur 1 = %s\n",mySettings.getvalue(section, key, buffer));
-    Serial.printf("Valeur de [Wifi], sta_ip: %s\n",mySettings.getvalue("Wifi", "sta_ip", buffer));
+    Serial.printf("Valeur de [Wifi], sta_psw:%s\n",mySettings.getvalue("Wifi", "sta_psw", buffer));
+    Serial.printf("Buffer:%s\n",buffer);
     Serial.println("___________________");
-    Serial.println("** 01 *****");mySettings.saveSettings("Wifi","sta_ip","19.19.19.19");
-    Serial.println("** 02 *****");mySettings.saveSettings("Wifi","sta_ip2","19.19.19.19");
-    Serial.println("** 03 *****");mySettings.saveSettings("Wifi1","sta_ip","192.192.192.192");
-    Serial.println("** 04 *****");mySettings.saveSettings("Section_2","var","newvalue");
-    Serial.println("** 05 *****");mySettings.saveSettings("Section_2","sta_ip","newKey");
+    // Serial.println("** 01 *****");mySettings.saveSettings("Wifi","sta_ip","19.19.19.19");
+    // Serial.println("** 02 *****");mySettings.saveSettings("Wifi","sta_ip2","19.19.19.19");
+    // Serial.println("** 03 *****");mySettings.saveSettings("Wifi1","sta_ip","192.192.192.192");
+    // Serial.println("** 04 *****");mySettings.saveSettings("Section_2","var","newvalue");
+    // Serial.println("** 05 *****");mySettings.saveSettings("Section_2","sta_ip","newKey");
   }
 
 void loop() {
