@@ -1,5 +1,5 @@
 {
-    "name": "IniSettings",
+    "name": "iniSettings",
     "keywords": "sd, card, file, system, ini",
     "description": "Reading and saving of settings on a SD card with an ini file",
     "authors":
