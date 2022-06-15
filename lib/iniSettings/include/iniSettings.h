@@ -40,7 +40,8 @@ class IniSettings
     public:          
       IniSettings(const char *fileName); 
       bool begin();
-      char * getvalue(const char * section, const char * key, char * value);
+      char * getValue(const char * section, const char * key, char * value);
+      int getValueInt(const char * section, const char * key);
       bool saveSettings(const char * section, const char * key, const char * value); 
   };
 

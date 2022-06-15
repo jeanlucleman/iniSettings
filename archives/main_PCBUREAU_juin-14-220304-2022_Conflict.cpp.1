@@ -9,6 +9,12 @@
 #include <RTClib.h>            // RTClib by Adafruit - Library for RTC-DS3231 real time clock
 #include <ESP32Time.h> //https://forum.arduino.cc/t/esp32-how-to-add-timestamp-on-sd-files-withou-ntp/943194/15
 // #include "ESP32FtpServer.h"
+#include "ESP-FTP-Server-Lib.h"
+#include "FTPFilesystem.h"
+#define FTP_USER "esp32"
+#define FTP_PASSWORD "esp32"
+FTPServer ftp;
+// FtpServer ftp;
 ESP32Time Inrtc; // From library ESP32Time, allowing to set the internal ESP32 clock at the actual time
 RTC_DS3231 RTC; // Real Time Clock object
 IniSettings mySettings("/settings.ini"); // My settings object
@@ -75,7 +81,7 @@ void setup()
     // Serial.printf("Valeur 1 = %s\n",mySettings.getvalue(section, key, buffer));
         Serial.printf("Valeur de [Wifi], apSsid:%s\n",mySettings.getValue("Wifi", "apSsid", buffer));
         Serial.printf("Buffer:%s\n",buffer);
-        mySettings.saveSettings("Wifi","apSsid","MMPPIIOOBB");
+    // mySettings.saveSettings("Wifi","apSsid")
     // Serial.println("** 01 *****");mySettings.saveSettings("Wifi","sta_ip","19.19.19.19");
     // Serial.println("** 02 *****");mySettings.saveSettings("Wifi","sta_ip2","19.19.19.19");
     // Serial.println("** 03 *****");mySettings.saveSettings("Wifi1","sta_ip","192.192.192.192");
@@ -83,13 +89,18 @@ void setup()
     // Serial.println("** 05 *****");mySettings.saveSettings("Section_2","sta_ip","newKey");
       // ftp.begin(FTP_USER, FTP_PASSWORD);
     // ftp.begin("esp32","esp32");
- 
+    ftp.addUser(FTP_USER, FTP_PASSWORD);
+#if defined(ESP32)
+	ftp.addFilesystem("SD", &SD);
 
+	ftp.addFilesystem("SPIFFS", &SPIFFS);
 
+	ftp.begin();
       Serial.println("Fin du setup");
 
   }
 
 void loop() {
   // put your main code here, to run repeatedly:
+    //  ftp.handleFTP(); 
 }

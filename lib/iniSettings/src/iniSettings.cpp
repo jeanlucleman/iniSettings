@@ -32,7 +32,12 @@ bool IniSettings::_openTempFile() // Initialize the temporary file in write mode
     _fileTemp = SD.open(_fileTempName, FILE_WRITE); 
     return _fileTemp;
   }
-char * IniSettings::getvalue(const char * section, const char * key, char * value)
+int IniSettings::getValueInt(const char * section, const char * key)
+  {
+    char value[BUFFER_LEN];
+    return atoi(getValue(section, key, value));
+  }
+char * IniSettings::getValue(const char * section, const char * key, char * value)
   {
     IniSettingsState state;
     _getValue(section, key, value, state);
@@ -91,6 +96,11 @@ bool IniSettings::_findKey(const char * section, const char * key, char * cp,Ini
                   {
                     found=true;
                     *ptrEqual++; // Now this pointer points on the start of value
+                    char *ptrComment = strchr(ptrEqual,';');
+                    if(ptrComment!=NULL)
+                      {
+                        *ptrComment='\0'; // The comment are left out when ready a value
+                      }                    
                     _leftTrim(ptrEqual);// removing left space if any
                     _rightTrim(ptrEqual);// removing right space if any
                     while(*ptrEqual!='\0')
@@ -207,7 +217,7 @@ bool IniSettings::saveSettings(const char * section, const char * key, const cha
                             #endif
                             _saveLine(bufferWrite);
                             keySaved=true; // As the key/value is saved, now we just have to copy the rest of the file
-                            sectionFound=true;
+                            // sectionFound=true; // useless?
                           }
                         #if DEBUG
                           Serial.printf("210: %S\n", bufferRead);
@@ -240,13 +250,29 @@ bool IniSettings::saveSettings(const char * section, const char * key, const cha
                           ptrWrite=bufferWrite;
                           while (*key!='\0')
                             {
-                              *ptrWrite++=*key++;
+                              *ptrWrite++=*key++; // the key is copied in the bufferWrite
                             }
-                          *ptrWrite++='=';
+                          *ptrWrite++='='; // Then  we add the '='
                           while (*value!='\0')
                             {
-                              *ptrWrite++=*value++;
+                              *ptrWrite++=*value++; // and we write the value
                             }
+
+                          firstChar=bufferRead;
+                          firstChar = strchr(firstChar, '=');
+                          firstChar = strchr(firstChar, ';');
+                          
+                          if (firstChar != NULL) 
+                            {
+                              *firstChar++;
+                              *ptrWrite++=';';
+                              while (*firstChar!='\0')
+                                {
+                                  *ptrWrite++=*firstChar++; // the comment is copied in the bufferWrite
+                                }
+                            }
+
+
                           *ptrWrite='\0';
                           #if DEBUG
                             Serial.printf("244: %S\n", bufferWrite);
