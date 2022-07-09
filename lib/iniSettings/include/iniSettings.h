@@ -43,6 +43,7 @@ class IniSettings
       char * getValue(const char * section, const char * key, char * value);
       int getValueInt(const char * section, const char * key);
       bool saveSettings(const char * section, const char * key, const char * value); 
+      bool saveSettings(const char * section, const char * key, int value); 
   };
 
 class IniSettingsState 

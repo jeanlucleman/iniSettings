@@ -344,6 +344,13 @@ bool IniSettings::saveSettings(const char * section, const char * key, const cha
     begin();
     return done;
   }
+
+bool IniSettings::saveSettings(const char * section, const char * key, int value)
+  {
+    std::string tmp = std::to_string(value);
+    char const *sValue = tmp.c_str();
+    saveSettings(section, key, sValue);
+  }
 bool IniSettings::_checkKey(char *bufferRead, const char *key, const char *value)
   {
     char temp[BUFFER_LEN];
