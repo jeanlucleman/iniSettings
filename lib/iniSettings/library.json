@@ -12,5 +12,5 @@
     },
     "frameworks": "arduino",
     "platforms": "az-delivery-devkit-v4",
-    "version": "0.0.6"
+    "version": "0.0.10"
 }

@@ -1,10 +1,19 @@
 #ifndef INISETTINGS_H
 #define INISETTINGS_H
-  #include <Arduino.h>
+
+//#define SDCARD // If not defined, the LittleFS (for ESP8266) is used
+
+#include <Arduino.h>
+#ifdef SDCARD
   #include <spi.h>
   #include "FS.h"
   #include <SD.h>
+#else
+  #include <LittleFS.h>
+#endif
   
+
+
 #define BUFFER_LEN 80
 class IniSettingsState;
 class IniSettings
@@ -42,8 +51,10 @@ class IniSettings
       bool begin();
       char * getValue(const char * section, const char * key, char * value);
       int getValueInt(const char * section, const char * key);
+      float getValueFloat(const char * section, const char * key);
       bool saveSettings(const char * section, const char * key, const char * value); 
       bool saveSettings(const char * section, const char * key, int value); 
+      bool saveSettings(const char * section, const char * key, unsigned long value);
   };
 
 class IniSettingsState 

@@ -3,6 +3,8 @@ The following is derived of iniFile from steve Marple (IniFile@^1.3.0), adding t
 
 */
 #define DEBUG false
+#define DEBUGSAVE false
+
 #include "iniSettings.h"
 IniSettings::IniSettings(const char* fileName) // Constructeur IniSettings
   { 
@@ -15,12 +17,46 @@ IniSettings::IniSettings(const char* fileName) // Constructeur IniSettings
 
 bool IniSettings::begin() // Initialize the settings file in read mode
   {
+
+
+
+      String listFiles;
+      if (!LittleFS.begin())
+      {
+        Serial.println("An Error has occurred while mounting file system");
+        return "";
+      }
+      String sep="$$";
+      Dir root = LittleFS.openDir("/");
+      while (root.next()) 
+        {
+          listFiles += String(root.fileName()) + sep;
+          if(root.fileSize()) 
+            {
+              File f = root.openFile("r");
+              Serial.print("Taille: ");
+              Serial.println(f.size());
+            }
+        }
+      Serial.println(listFiles);
+
+
+
+
+
+
+
+    Serial.println(String(_fileName));
     if (_fileSettings)
       {
         _fileSettings.close();
       }
-    _fileSettings=SD.open(_fileName, FILE_READ); 
-   return _fileSettings;
+    #ifdef SDCARD
+      _fileSettings= SD.open(_fileName, FILE_READ); 
+    #else
+       _fileSettings= LittleFS.open(String(_fileName), "r"); 
+    #endif
+   if(_fileSettings) {return true;}else{return false;}
   }
 bool IniSettings::_openTempFile() // Initialize the temporary file in write mode
   {
@@ -29,13 +65,22 @@ bool IniSettings::_openTempFile() // Initialize the temporary file in write mode
         _fileTemp.close();
       }
 // File::dateTimeCallback(dateTime);
-    _fileTemp = SD.open(_fileTempName, FILE_WRITE); 
+    #ifdef SDCARD
+      _fileTemp = SD.open(_fileTempName, FILE_WRITE); 
+    #else
+      _fileTemp = LittleFS.open(String(_fileTempName), "w"); 
+    #endif
     return _fileTemp;
   }
 int IniSettings::getValueInt(const char * section, const char * key)
   {
     char value[BUFFER_LEN];
     return atoi(getValue(section, key, value));
+  }
+float IniSettings::getValueFloat(const char * section, const char * key)
+  {
+    char value[BUFFER_LEN];
+    return atof(getValue(section, key, value));
   }
 char * IniSettings::getValue(const char * section, const char * key, char * value)
   {
@@ -55,12 +100,22 @@ bool IniSettings::_getValue(const char * section, const char * key, char * value
             state.stateValue=IniSettingsState::sectionFound;
             done=true;
           }
+        else
+          {
+            Serial.println("_findSection=false");
+            *value='\0';
+          }
         break;
       case IniSettingsState::sectionFound:
         if(_findKey(section, key, value, state))
           {
             state.stateValue=IniSettingsState::keyFound;
             done=true;
+          }
+        else
+          {
+            Serial.println("_findKey=false");
+            *value='\0';
           }
         break;
       case IniSettingsState::keyFound:
@@ -78,11 +133,16 @@ bool IniSettings::_findKey(const char * section, const char * key, char * cp,Ini
     bool found = false;
     while (!found)
       {
-        if (!_readNextLine(cp)){break;} // Section not found reaching end of file
+        if (!_readNextLine(cp)) // Section not found reaching end of file
+          {
+            Serial.println("Section not found reaching end of file");
+            break;
+          } 
         _leftTrim(cp);
         if(*cp=='[') // New section, key not found in the previous section   
           {
             state.error_getValue =IniSettingsState::errorKeyNotFound;
+            Serial.println("New section, key not found in the previous section");
             break;
           }   
         if(*cp!=';' && *cp!='#') // We are not on a commented line
@@ -157,7 +217,9 @@ bool IniSettings::_findSection(const char * section, const char * key, char * cp
 bool IniSettings::_saveLine(char* bufferWrite)
   {
     _fileTemp.printf("%s\n",bufferWrite);
-    // Serial.printf("-> %s\n",bufferWrite);
+    #if DEBUG
+        Serial.printf("-> %s\n",bufferWrite);
+    #endif
     return true;
   }
 
@@ -171,14 +233,21 @@ bool IniSettings::saveSettings(const char * section, const char * key, const cha
     bool sectionFound=false; // become true when the section parameter has been found in the settings file
     _openTempFile(); // Open a temp file for writing mode, making a copy of the settings file with the modification from parameters
     _fileSettings.seek(0); // set the file pointer at the beginning
+    #if DEBUGSAVE
+      Serial.println("\n===========================================");
+      Serial.printf("\nEntering in saveSettings saving section = %s, key = %s, value = %s",section, key,value);
+    #endif  
     while (!done)  
       {
         if(_readNextLine(bufferRead)) // will be false at end of file
           {
-            if(keySaved) // as the key/value parameter have been written, now we just copy the rest in the temp file
+            #if DEBUGSAVE
+              Serial.printf("\nWe read a new line %s\n", bufferRead);
+            #endif            
+            if(keySaved) // As the key/value parameter have been written, now we just copy the rest in the temp file
               {
-                #if DEBUG
-                  Serial.printf("168: %S\n", bufferRead);
+                #if DEBUGSAVE
+                  Serial.println("As the key/value parameter have been written, now we just copy the rest in the temp file");
                 #endif
                 _saveLine(bufferRead);
               }
@@ -193,8 +262,8 @@ bool IniSettings::saveSettings(const char * section, const char * key, const cha
                   {
                     case '#': // This is a comment line
                     case ';':
-                      #if DEBUG
-                        Serial.printf("184: %S\n", bufferRead);
+                      #if DEBUGSAVE
+                        Serial.println("This is a comment line");
                       #endif
                       _saveLine(bufferRead);
                       break;
@@ -212,15 +281,15 @@ bool IniSettings::saveSettings(const char * section, const char * key, const cha
                                 *ptrWrite++=*value++; // and finally we copy the value
                               }
                             *ptrWrite='\0'; // and we close the new string
-                            #if DEBUG
-                              Serial.printf("203: %S\n", bufferWrite);
+                            #if DEBUGSAVE
+                              Serial.println("The section was found before, we are on a new section line so we copy the key=value line");
                             #endif
                             _saveLine(bufferWrite);
                             keySaved=true; // As the key/value is saved, now we just have to copy the rest of the file
                             // sectionFound=true; // useless?
                           }
-                        #if DEBUG
-                          Serial.printf("210: %S\n", bufferRead);
+                        #if DEBUGSAVE
+                          Serial.println("We write the section line just read");
                         #endif
                         _saveLine(bufferRead); // We save the section line, not modified
                         if (!keySaved) // as the key has not yet been saved we must check if this is the section in parameter
@@ -241,12 +310,15 @@ bool IniSettings::saveSettings(const char * section, const char * key, const cha
                           }
                         break;
                       }
-                    default:
-                      #if DEBUG
-                        Serial.printf("Ligne lue: %s\n",bufferRead);
+                    default: // The line read is not a comment line and not a section line
+                      #if DEBUGSAVE
+                        Serial.printf("La ligne lue n'est ni commentaire si section line: %s\n",bufferRead);
                       #endif
                       if (sectionFound && _checkKey(bufferRead, key,value)) //On est dans la bonne section et la ligne lue contient la bonne clé
                         {
+                      #if DEBUGSAVE
+                        Serial.printf("On est dans la bonne section et la ligne lue contient la bonne clé: %s\n",bufferRead);
+                      #endif
                           ptrWrite=bufferWrite;
                           while (*key!='\0')
                             {
@@ -274,8 +346,8 @@ bool IniSettings::saveSettings(const char * section, const char * key, const cha
 
 
                           *ptrWrite='\0';
-                          #if DEBUG
-                            Serial.printf("244: %S\n", bufferWrite);
+                          #if DEBUGSAVE
+                            Serial.printf("Ecriture de la ligne avec la nouvelle valeur: %S\n", bufferWrite);
                           #endif
                           _saveLine(bufferWrite);
                           sectionFound=false; 
@@ -283,15 +355,15 @@ bool IniSettings::saveSettings(const char * section, const char * key, const cha
                         }
                       else
                         {
-                          #if DEBUG
-                            Serial.printf("253: %S\n", bufferRead);
+                          #if DEBUGSAVE
+                            Serial.printf("The line read is copied as it is because we are not in the right section or it is not the right key: %S\n", bufferRead);
                           #endif
-                          _saveLine(bufferRead);
+                          _saveLine(bufferRead); // The line read is copied as it is because we are not in the right section or it is not the right key
                         }
                   }
               }
           }
-        else
+        else // we are at end of file and this is not done!
           {
             if (!keySaved) // We are at end of file and the section in parameter has not been found yet
               {
@@ -302,8 +374,8 @@ bool IniSettings::saveSettings(const char * section, const char * key, const cha
                   }
                 *ptrWrite++=']';
                 *ptrWrite='\0';   
-                #if DEBUG
-                  Serial.printf("272: %S\n", bufferWrite);
+                #if DEBUGSAVE
+                  Serial.printf("Being at end of file with no section found, a new section line is added: %S\n", bufferWrite);
                 #endif
                 _saveLine(bufferWrite); // saving the new section line ex. [Wifi]
                 // Writing the new key=value 
@@ -318,8 +390,8 @@ bool IniSettings::saveSettings(const char * section, const char * key, const cha
                     *ptrWrite++=*value++;
                   }
                 *ptrWrite='\0';
-                #if DEBUG
-                  Serial.printf("288: %S\n", bufferWrite);
+                #if DEBUGSAVE
+                  Serial.printf("And the key value is added: %S\n", bufferWrite);
                 #endif
                 _saveLine(bufferWrite); // saving the new key=value line
 
@@ -338,18 +410,32 @@ bool IniSettings::saveSettings(const char * section, const char * key, const cha
     // char path3[] = "/*.ini"; 
     // path3[1]=count+64;//  (char *) count;
     // Serial.println("Effacement du fichier");
-    SD.remove(path2);
+    #ifdef SDCARD
+      SD.remove(path2);
+      SDFS.rename(path1,path2);
+    #else
+      LittleFS.remove(String(path2));
+      LittleFS.rename(String(path1),String(path2));
+    #endif
+
+
     // SD.rename(path2,path3);
-    SD.rename(path1, path2);
+    // SD.rename(path1, path2);
     begin();
     return done;
   }
 
 bool IniSettings::saveSettings(const char * section, const char * key, int value)
   {
-    char sValue[3] ;
+    char sValue[16] ;
     sprintf(sValue, "%d", value);
-    saveSettings(section, key, sValue);
+    return saveSettings(section, key, sValue);
+  }
+bool IniSettings::saveSettings(const char * section, const char * key, unsigned long value)
+  {
+    char sValue[16] ;
+    sprintf(sValue, "%lu", value);
+    return saveSettings(section, key, sValue);
   }
 bool IniSettings::_checkKey(char *bufferRead, const char *key, const char *value)
   {
