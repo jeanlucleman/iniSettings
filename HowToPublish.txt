@@ -1,0 +1,8 @@
+Dans le répertoire E:\15_Informatique\Projets\PlatformIO\Common\lib\iniSettings\lib\iniSettings,
+mettre à jour le fichier library.json pour changer la version.
+
+Dans PlatformIO, cliquer à gauche sur l'icone de platformIO, puis cliquer sur le menu PlatformIO Core CLI
+Taper ensuite la commande:
+ pio pkg publish E:\15_Informatique\Projets\PlatformIO\Common\lib\iniSettings\lib
+ 
+ 

@@ -126,14 +126,6 @@ bool IniSettings::_getValue(const char * section, const char * key, char * value
       }
     return done;
   }
-bool IniSettings::getValueBool(const char * section, const char * key)
-  {
-    char value[BUFFER_LEN];
-    return (strcmp(getValue(section, key, value),"true")==0);
-  }
-
-
-
 bool IniSettings::_findKey(const char * section, const char * key, char * cp,IniSettingsState &state)
   {
     bool found = false;

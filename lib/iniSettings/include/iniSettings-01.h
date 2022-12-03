@@ -53,7 +53,6 @@ class IniSettings
       int getValueInt(const char * section, const char * key);
       String getValueString(const char * section, const char * key);
       float getValueFloat(const char * section, const char * key);
-      bool getValueBool(const char * section, const char * key);
       bool saveSettings(const char * section, const char * key, const char * value); 
       bool saveSettings(const char * section, const char * key, int value); 
       bool saveSettings(const char * section, const char * key, unsigned long value);
